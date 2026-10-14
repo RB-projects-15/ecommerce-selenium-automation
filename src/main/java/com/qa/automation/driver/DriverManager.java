@@ -1,10 +1,11 @@
-
 package com.qa.automation.driver;
 
 import com.qa.automation.config.ConfigReader;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 
 public class DriverManager {
 
@@ -26,12 +27,27 @@ public class DriverManager {
             WebDriver webDriver;
 
             switch (browser) {
+
                 case "chrome":
-                    webDriver = new ChromeDriver();
+                    ChromeOptions chromeOptions = new ChromeOptions();
+
+                    if (System.getenv("CI") != null) {
+                        chromeOptions.addArguments("--headless");
+                        chromeOptions.addArguments("--no-sandbox");
+                        chromeOptions.addArguments("--disable-dev-shm-usage");
+                    }
+
+                    webDriver = new ChromeDriver(chromeOptions);
                     break;
 
                 case "firefox":
-                    webDriver = new FirefoxDriver();
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+
+                    if (System.getenv("CI") != null) {
+                        firefoxOptions.addArguments("-headless");
+                    }
+
+                    webDriver = new FirefoxDriver(firefoxOptions);
                     break;
 
                 default:
