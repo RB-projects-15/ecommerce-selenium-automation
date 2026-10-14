@@ -1,3 +1,4 @@
+
 package com.qa.automation.driver;
 
 import com.qa.automation.config.ConfigReader;
@@ -7,7 +8,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 public class DriverManager {
 
-    private static WebDriver driver;
+    private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
 
     private DriverManager() {
         // Prevent object creation
@@ -15,20 +16,22 @@ public class DriverManager {
 
     public static WebDriver getDriver() {
 
-        if (driver == null) {
+        if (driver.get() == null) {
 
             String browser = ConfigReader
                     .getProperty("browser")
                     .trim()
                     .toLowerCase();
 
+            WebDriver webDriver;
+
             switch (browser) {
                 case "chrome":
-                    driver = new ChromeDriver();
+                    webDriver = new ChromeDriver();
                     break;
 
                 case "firefox":
-                    driver = new FirefoxDriver();
+                    webDriver = new FirefoxDriver();
                     break;
 
                 default:
@@ -36,17 +39,23 @@ public class DriverManager {
                             "Unsupported browser: " + browser);
             }
 
-            driver.manage().window().maximize();
+            webDriver.manage().window().maximize();
+            driver.set(webDriver);
         }
 
-        return driver;
+        return driver.get();
     }
 
     public static void quitDriver() {
 
-        if (driver != null) {
-            driver.quit();
-            driver = null;
+        WebDriver webDriver = driver.get();
+
+        if (webDriver != null) {
+            try {
+                webDriver.quit();
+            } finally {
+                driver.remove();
+            }
         }
     }
 }

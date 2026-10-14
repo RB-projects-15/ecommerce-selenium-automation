@@ -20,3 +20,15 @@ Thumbs.db
 
 # Java compiled files
 *.class
+
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local configuration overrides
+config-local.properties
+
+# Test screenshots and generated artifacts
+screenshots/

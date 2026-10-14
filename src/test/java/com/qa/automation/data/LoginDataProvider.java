@@ -8,12 +8,26 @@ public class LoginDataProvider {
         public static Object[][] invalidLoginData() {
 
                 return new Object[][] {
-                                { "standard_user", "wrong_password",
-                                                "Username and password do not match" },
-                                { "", "secret_sauce",
-                                                "Username is required" },
-                                { "standard_user", "",
-                                                "Password is required" }
+                                {
+                                                "standard_user",
+                                                "wrong_password",
+                                                "Username and password do not match"
+                                },
+                                {
+                                                "",
+                                                "secret_sauce",
+                                                "Username is required"
+                                },
+                                {
+                                                "standard_user",
+                                                "",
+                                                "Password is required"
+                                },
+                                {
+                                                "",
+                                                "",
+                                                "Username is required"
+                                }
                 };
         }
 }

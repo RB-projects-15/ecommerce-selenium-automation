@@ -1,9 +1,9 @@
-
 package com.qa.automation.tests;
 
 import java.time.Duration;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
@@ -13,138 +13,137 @@ import com.qa.automation.base.BaseTest;
 
 public class CheckoutValidationTest extends BaseTest {
 
-    private final By errorMessage =
-            By.cssSelector("[data-test='error']");
+        private final By errorMessage = By.cssSelector("[data-test='error']");
 
-    private final By usernameField = By.id("user-name");
-    private final By passwordField = By.id("password");
-    private final By loginButton = By.id("login-button");
-    private final By addToCartButton =
-            By.id("add-to-cart-sauce-labs-backpack");
-    private final By cartIcon =
-            By.className("shopping_cart_link");
-    private final By checkoutButton = By.id("checkout");
-    private final By firstNameField = By.id("first-name");
-    private final By lastNameField = By.id("last-name");
-    private final By postalCodeField = By.id("postal-code");
-    private final By continueButton = By.id("continue");
+        private final By usernameField = By.id("user-name");
+        private final By passwordField = By.id("password");
+        private final By loginButton = By.id("login-button");
+        private final By productsTitle = By.className("title");
 
-    private WebDriverWait getWait() {
-        return new WebDriverWait(driver, Duration.ofSeconds(10));
-    }
+        private final By addToCartButton = By.id("add-to-cart-sauce-labs-backpack");
+        private final By cartIcon = By.className("shopping_cart_link");
+        private final By cartItem = By.className("cart_item");
+        private final By checkoutButton = By.id("checkout");
 
-    private void openCheckout() {
-        WebDriverWait wait = getWait();
+        private final By firstNameField = By.id("first-name");
+        private final By lastNameField = By.id("last-name");
+        private final By postalCodeField = By.id("postal-code");
+        private final By continueButton = By.id("continue");
 
-        driver.get("https://www.saucedemo.com/");
+        private WebDriverWait getWait() {
+                return new WebDriverWait(driver, Duration.ofSeconds(15));
+        }
 
-        wait.until(
-                ExpectedConditions.visibilityOfElementLocated(usernameField)
-        ).sendKeys("standard_user");
+        private void openCheckout() {
+                WebDriverWait wait = getWait();
 
-        wait.until(
-                ExpectedConditions.visibilityOfElementLocated(passwordField)
-        ).sendKeys("secret_sauce");
+                // Open the login page.
+                driver.get("https://www.saucedemo.com/");
 
-        wait.until(
-                ExpectedConditions.elementToBeClickable(loginButton)
-        ).click();
+                wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(usernameField)).sendKeys("standard_user");
 
-        // Wait for the products page.
-        wait.until(
-                ExpectedConditions.visibilityOfElementLocated(addToCartButton)
-        );
+                wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(passwordField)).sendKeys("secret_sauce");
 
-        wait.until(
-                ExpectedConditions.elementToBeClickable(addToCartButton)
-        ).click();
+                wait.until(
+                                ExpectedConditions.elementToBeClickable(loginButton)).click();
 
-        // Open the shopping cart.
-        wait.until(
-                ExpectedConditions.elementToBeClickable(cartIcon)
-        ).click();
+                // Confirm successful navigation to the products page.
+                wait.until(
+                                ExpectedConditions.urlContains("inventory.html"));
 
-        // Open checkout.
-        wait.until(
-                ExpectedConditions.elementToBeClickable(checkoutButton)
-        ).click();
+                wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(productsTitle));
 
-        // Confirm that the customer information page has loaded.
-        wait.until(
-                ExpectedConditions.visibilityOfElementLocated(firstNameField)
-        );
+                // Add the backpack to the cart.
+                wait.until(
+                                ExpectedConditions.elementToBeClickable(addToCartButton)).click();
 
-        Assert.assertTrue(
-                driver.getCurrentUrl().contains("checkout-step-one.html"),
-                "Checkout information page did not open. Current URL: "
-                        + driver.getCurrentUrl()
-        );
-    }
+                // Open the cart and confirm the product is present.
+                wait.until(
+                                ExpectedConditions.elementToBeClickable(cartIcon)).click();
 
-    private void verifyError(String expectedError) {
-        WebDriverWait wait = getWait();
+                wait.until(
+                                ExpectedConditions.urlContains("cart.html"));
 
-        String actualError = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(errorMessage)
-        ).getText();
+                wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(cartItem));
 
-        Assert.assertTrue(
-                actualError.contains(expectedError),
-                "Expected error: " + expectedError
-                        + ", but got: " + actualError
-        );
+                // Click checkout.
+                wait.until(
+                                ExpectedConditions.elementToBeClickable(checkoutButton)).click();
 
-        Assert.assertTrue(
-                driver.getCurrentUrl().contains("checkout-step-one.html"),
-                "Checkout should remain on the customer information page."
-        );
-    }
+                // Confirm the checkout information page has loaded.
+                wait.until(
+                                ExpectedConditions.urlContains("checkout-step-one.html"));
 
-    @Test
-    public void verifyMissingFirstName() {
-        openCheckout();
+                wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(firstNameField));
 
-        waitForField(lastNameField).sendKeys("QA");
-        waitForField(postalCodeField).sendKeys("403507");
+                Assert.assertTrue(
+                                driver.getCurrentUrl().contains("checkout-step-one.html"),
+                                "Checkout information page did not open. Current URL: "
+                                                + driver.getCurrentUrl());
+        }
 
-        getWait().until(
-                ExpectedConditions.elementToBeClickable(continueButton)
-        ).click();
+        private void verifyError(String expectedError) {
+                WebDriverWait wait = getWait();
 
-        verifyError("First Name is required");
-    }
+                String actualError = wait.until(
+                                ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
 
-    @Test
-    public void verifyMissingLastName() {
-        openCheckout();
+                Assert.assertTrue(
+                                actualError.contains(expectedError),
+                                "Expected error: " + expectedError
+                                                + ", but got: " + actualError);
 
-        waitForField(firstNameField).sendKeys("Rohan");
-        waitForField(postalCodeField).sendKeys("403507");
+                Assert.assertTrue(
+                                driver.getCurrentUrl().contains("checkout-step-one.html"),
+                                "Checkout should remain on the customer information page.");
+        }
 
-        getWait().until(
-                ExpectedConditions.elementToBeClickable(continueButton)
-        ).click();
+        private WebElement waitForField(By locator) {
+                return getWait().until(
+                                ExpectedConditions.visibilityOfElementLocated(locator));
+        }
 
-        verifyError("Last Name is required");
-    }
+        @Test
+        public void verifyMissingFirstName() {
+                openCheckout();
 
-    @Test
-    public void verifyMissingPostalCode() {
-        openCheckout();
+                waitForField(lastNameField).sendKeys("QA");
+                waitForField(postalCodeField).sendKeys("403507");
 
-        waitForField(firstNameField).sendKeys("Rohan");
-        waitForField(lastNameField).sendKeys("QA");
+                getWait().until(
+                                ExpectedConditions.elementToBeClickable(continueButton)).click();
 
-        getWait().until(
-                ExpectedConditions.elementToBeClickable(continueButton)
-        ).click();
+                verifyError("First Name is required");
+        }
 
-        verifyError("Postal Code is required");
-    }
+        @Test
+        public void verifyMissingLastName() {
+                openCheckout();
 
-    private org.openqa.selenium.WebElement waitForField(By locator) {
-        return getWait().until(
-                ExpectedConditions.visibilityOfElementLocated(locator)
-        );
-    }
+                waitForField(firstNameField).sendKeys("Rohan");
+                waitForField(postalCodeField).sendKeys("403507");
+
+                getWait().until(
+                                ExpectedConditions.elementToBeClickable(continueButton)).click();
+
+                verifyError("Last Name is required");
+        }
+
+        @Test
+        public void verifyMissingPostalCode() {
+                openCheckout();
+
+                waitForField(firstNameField).sendKeys("Rohan");
+                waitForField(lastNameField).sendKeys("QA");
+
+                getWait().until(
+                                ExpectedConditions.elementToBeClickable(continueButton)).click();
+
+                verifyError("Postal Code is required");
+        }
 }
