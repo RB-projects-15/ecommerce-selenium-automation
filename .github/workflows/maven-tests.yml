@@ -5,11 +5,38 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "30 2 * * 1-5"   # nightly regression, Mon-Fri 02:30 UTC
   workflow_dispatch:
+    inputs:
+      suite:
+        description: "TestNG suite file to run"
+        required: true
+        default: "testng.xml"
+        type: choice
+        options:
+          - testng.xml
+          - testng-smoke.xml
+      browser:
+        description: "Browser"
+        required: true
+        default: "chrome"
+        type: choice
+        options:
+          - chrome
+          - firefox
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -23,7 +50,11 @@ jobs:
           cache: maven
 
       - name: Run Selenium tests
-        run: mvn --batch-mode clean test
+        run: >
+          mvn --batch-mode --no-transfer-progress clean test
+          -Dheadless=true
+          -DsuiteXmlFile=${{ inputs.suite || 'testng.xml' }}
+          -Dbrowser=${{ inputs.browser || 'chrome' }}
 
       - name: Upload test reports
         if: always()
@@ -32,5 +63,7 @@ jobs:
           name: selenium-test-reports
           path: |
             target/surefire-reports/
-            test-output/ExtentReport.html
+            target/extent-report/
+            target/screenshots/
+          retention-days: 14
           if-no-files-found: ignore

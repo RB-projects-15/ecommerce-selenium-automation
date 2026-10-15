@@ -1,8 +1,7 @@
-
-# Maven build output
+# Maven build output (also contains reports and screenshots)
 target/
 
-# Generated test reports
+# Legacy report folder
 test-output/
 
 # Logs
@@ -13,22 +12,16 @@ logs/
 .vscode/
 .idea/
 *.iml
+.classpath
+.project
+.settings/
 
-# Operating system files
+# OS files
 .DS_Store
 Thumbs.db
 
-# Java compiled files
-*.class
-
-
-# Local environment and secrets
+# Local configuration / secrets
 .env
 .env.*
 !.env.example
-
-# Local configuration overrides
 config-local.properties
-
-# Test screenshots and generated artifacts
-screenshots/

@@ -1,55 +1,51 @@
-
 package com.qa.automation.utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
-public class ScreenshotUtils {
+public final class ScreenshotUtils {
 
-    public static String captureScreenshot(
-            WebDriver driver, String testName) {
+    private static final Path SCREENSHOT_DIR = Paths.get("target", "screenshots");
+    private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS");
 
-        if (driver == null) {
+    private ScreenshotUtils() {
+        // utility class
+    }
+
+    /** Captures the browser viewport as PNG bytes, or {@code null} if that is not possible. */
+    public static byte[] capture(WebDriver driver) {
+        if (!(driver instanceof TakesScreenshot screenshotDriver)) {
             return null;
         }
-
         try {
-            Path screenshotDirectory = Paths.get("test-output", "screenshots");
+            return screenshotDriver.getScreenshotAs(OutputType.BYTES);
+        } catch (RuntimeException e) {
+            System.err.println("Could not capture screenshot: " + e.getMessage());
+            return null;
+        }
+    }
 
-            Files.createDirectories(screenshotDirectory);
-
-            String timestamp = new SimpleDateFormat(
-                    "yyyyMMdd_HHmmss").format(new Date());
-
-            String safeTestName = testName.replaceAll(
-                    "[^a-zA-Z0-9-_]", "_");
-
-            Path destination = screenshotDirectory.resolve(
-                    safeTestName + "_" + timestamp + ".png");
-
-            File source = ((TakesScreenshot) driver)
-                    .getScreenshotAs(OutputType.FILE);
-
-            Files.copy(
-                    source.toPath(),
-                    destination,
-                    StandardCopyOption.REPLACE_EXISTING);
-
-            return destination.toAbsolutePath().toString();
-
-        } catch (IOException | RuntimeException e) {
-            System.err.println(
-                    "Could not capture screenshot: " + e.getMessage());
+    /** Saves PNG bytes under target/screenshots and returns the file path, or {@code null} on failure. */
+    public static Path save(byte[] png, String testName) {
+        if (png == null) {
+            return null;
+        }
+        try {
+            Files.createDirectories(SCREENSHOT_DIR);
+            String safeName = testName.replaceAll("[^a-zA-Z0-9-_]", "_");
+            Path file = SCREENSHOT_DIR.resolve(safeName + "_" + LocalDateTime.now().format(TIMESTAMP) + ".png");
+            Files.write(file, png);
+            return file;
+        } catch (IOException e) {
+            System.err.println("Could not save screenshot: " + e.getMessage());
             return null;
         }
     }

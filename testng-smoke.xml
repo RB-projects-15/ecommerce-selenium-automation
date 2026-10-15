@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!-- Fast smoke suite: only tests tagged with the "smoke" group. -->
+<suite name="E-Commerce Smoke Suite" parallel="methods" thread-count="3" data-provider-thread-count="3">
+    <test name="Smoke">
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.qa.automation.tests"/>
+        </packages>
+    </test>
+</suite>

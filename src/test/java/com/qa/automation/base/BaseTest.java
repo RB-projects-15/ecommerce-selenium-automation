@@ -1,44 +1,42 @@
 package com.qa.automation.base;
 
-import com.qa.automation.driver.DriverManager;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import com.qa.automation.utils.TestListener;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.qa.automation.data.User;
+import com.qa.automation.driver.DriverManager;
+import com.qa.automation.pages.LoginPage;
+import com.qa.automation.pages.ProductsPage;
 
-@Listeners(TestListener.class)
-public class BaseTest {
-
-    public WebDriver driver;
+/**
+ * Base class for all UI tests.
+ *
+ * <p>Test classes must stay stateless: with {@code parallel="methods"} one instance is shared by
+ * several threads, so the WebDriver is always fetched from the thread-local {@link DriverManager}
+ * through {@link #driver()} rather than stored in a field.
+ */
+public abstract class BaseTest {
 
     @BeforeMethod(alwaysRun = true)
     public void setUp() {
-        driver = DriverManager.getDriver();
+        DriverManager.getDriver();
     }
 
     @AfterMethod(alwaysRun = true)
-    public void tearDown(ITestResult result) {
-
-        // Save a screenshot if the test failed, before the browser closes
-        if (result.getStatus() == ITestResult.FAILURE && driver != null) {
-            try {
-                byte[] png = ((TakesScreenshot) driver)
-                        .getScreenshotAs(OutputType.BYTES);
-                Path dir = Path.of("target", "screenshots");
-                Files.createDirectories(dir);
-                Files.write(dir.resolve(result.getName() + ".png"), png);
-            } catch (Exception e) {
-                System.out.println("Could not save screenshot: " + e.getMessage());
-            }
-        }
-
+    public void tearDown() {
         DriverManager.quitDriver();
+    }
+
+    protected WebDriver driver() {
+        return DriverManager.getDriver();
+    }
+
+    protected LoginPage openLoginPage() {
+        return new LoginPage(driver()).open();
+    }
+
+    protected ProductsPage loginAsStandardUser() {
+        return openLoginPage().loginAs(User.STANDARD);
     }
 }
